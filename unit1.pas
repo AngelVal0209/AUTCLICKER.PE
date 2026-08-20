@@ -294,7 +294,14 @@ begin
     MessageDlg('Coordenadas fuera de la pantalla', mtWarning, [mbOK], 0);
     Exit;
   end;
-  SetAll(True);
+  FOn[0] := True;
+  if worker = nil then
+  begin
+    worker := TClicThread.Create(False);
+    worker.FreeOnTerminate := True;
+    worker.OnTerminate := @ThreadDone;
+  end;
+  UpdateUI;
 end;
 
 procedure TMainForm.OnStopClick(Sender: TObject);
