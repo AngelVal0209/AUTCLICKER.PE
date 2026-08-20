@@ -1,0 +1,5 @@
+*.o
+*.obj
+*.ppu
+*.compiled
+autoclicker.ini

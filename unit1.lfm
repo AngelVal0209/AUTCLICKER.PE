@@ -1,0 +1,331 @@
+object MainForm: TMainForm
+  Left = 440
+  Height = 500
+  Top = 150
+  Width = 430
+  BorderStyle = bsSingle
+  Caption = 'AUTOCLICKER 1.0 BY DIABLO'
+  ClientHeight = 466
+  ClientWidth = 430
+  Font.Height = -12
+  Font.Name = 'Segoe UI'
+  FormStyle = fsStayOnTop
+  Position = poScreenCenter
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
+  object gbInterval: TGroupBox
+    Left = 10
+    Top = 8
+    Width = 410
+    Height = 88
+    Caption = 'Click interval'
+    TabOrder = 0
+    object sedH: TSpinEdit
+      Left = 12
+      Top = 24
+      Width = 60
+      Height = 26
+      MaxValue = 99
+      TabOrder = 0
+      Value = 0
+    end
+    object lblH: TLabel
+      Left = 76
+      Top = 29
+      Width = 12
+      Height = 20
+      Caption = 'h'
+    end
+    object sedMin: TSpinEdit
+      Left = 104
+      Top = 24
+      Width = 60
+      Height = 26
+      MaxValue = 99
+      TabOrder = 1
+      Value = 0
+    end
+    object lblMin: TLabel
+      Left = 168
+      Top = 29
+      Width = 24
+      Height = 20
+      Caption = 'min'
+    end
+    object sedS: TSpinEdit
+      Left = 196
+      Top = 24
+      Width = 60
+      Height = 26
+      MaxValue = 99
+      TabOrder = 2
+      Value = 0
+    end
+    object lblS: TLabel
+      Left = 260
+      Top = 29
+      Width = 24
+      Height = 20
+      Caption = 'seg'
+    end
+    object sedMs: TSpinEdit
+      Left = 288
+      Top = 24
+      Width = 60
+      Height = 26
+      MaxValue = 999
+      TabOrder = 3
+      Value = 100
+    end
+    object lblMs: TLabel
+      Left = 352
+      Top = 29
+      Width = 16
+      Height = 20
+      Caption = 'ms'
+    end
+    object chkRand: TCheckBox
+      Left = 12
+      Top = 56
+      Width = 170
+      Height = 20
+      Caption = 'Random offset +/-'
+      TabOrder = 4
+    end
+    object sedRand: TSpinEdit
+      Left = 190
+      Top = 54
+      Width = 60
+      Height = 26
+      MaxValue = 1000
+      TabOrder = 5
+      Value = 40
+    end
+    object lblRandMs: TLabel
+      Left = 254
+      Top = 59
+      Width = 16
+      Height = 20
+      Caption = 'ms'
+    end
+  end
+  object gbOptions: TGroupBox
+    Left = 10
+    Top = 102
+    Width = 200
+    Height = 88
+    Caption = 'Click options'
+    TabOrder = 1
+    object lblBtn: TLabel
+      Left = 15
+      Top = 28
+      Width = 95
+      Height = 20
+      Caption = 'Mouse button:'
+    end
+    object cbBtn: TComboBox
+      Left = 112
+      Top = 24
+      Width = 76
+      Height = 24
+      Style = csDropDownList
+      ItemIndex = 0
+      Items.Strings = (
+        'Left'
+        'Right'
+        'Middle')
+      TabOrder = 0
+    end
+    object lblTipo: TLabel
+      Left = 15
+      Top = 56
+      Width = 95
+      Height = 20
+      Caption = 'Click type:'
+    end
+    object cbTipo: TComboBox
+      Left = 112
+      Top = 52
+      Width = 76
+      Height = 24
+      Style = csDropDownList
+      ItemIndex = 0
+      Items.Strings = (
+        'Single'
+        'Double')
+      TabOrder = 1
+    end
+  end
+  object gbRepeat: TGroupBox
+    Left = 216
+    Top = 102
+    Width = 204
+    Height = 88
+    Caption = 'Click repeat'
+    TabOrder = 2
+    object rbVeces: TRadioButton
+      Left = 15
+      Top = 24
+      Width = 70
+      Height = 20
+      Caption = 'Repeat'
+      TabOrder = 0
+    end
+    object sedVeces: TSpinEdit
+      Left = 90
+      Top = 22
+      Width = 55
+      Height = 26
+      MinValue = 1
+      TabOrder = 1
+      Value = 1
+    end
+    object lblVeces: TLabel
+      Left = 150
+      Top = 27
+      Width = 35
+      Height = 20
+      Caption = 'times'
+    end
+    object rbHasta: TRadioButton
+      Left = 15
+      Top = 52
+      Width = 180
+      Height = 20
+      Caption = 'Repeat until stopped'
+      Checked = True
+      TabOrder = 2
+    end
+  end
+  object gbCursor: TGroupBox
+    Left = 10
+    Top = 196
+    Width = 410
+    Height = 84
+    Caption = 'Cursor position'
+    TabOrder = 3
+    object rbCur: TRadioButton
+      Left = 15
+      Top = 20
+      Width = 130
+      Height = 20
+      Caption = 'Current location'
+      Checked = True
+      TabOrder = 0
+      OnClick = OnPosChange
+    end
+    object rbPick: TRadioButton
+      Left = 155
+      Top = 20
+      Width = 120
+      Height = 20
+      Caption = 'Pick location'
+      TabOrder = 1
+      OnClick = OnPosChange
+    end
+    object lblX: TLabel
+      Left = 15
+      Top = 54
+      Width = 14
+      Height = 20
+      Caption = 'X:'
+    end
+    object sedX: TSpinEdit
+      Left = 32
+      Top = 50
+      Width = 90
+      Height = 26
+      Enabled = False
+      MaxValue = 9999
+      TabOrder = 2
+      Value = 0
+    end
+    object lblY: TLabel
+      Left = 132
+      Top = 54
+      Width = 14
+      Height = 20
+      Caption = 'Y:'
+    end
+    object sedY: TSpinEdit
+      Left = 149
+      Top = 50
+      Width = 90
+      Height = 26
+      Enabled = False
+      MaxValue = 9999
+      TabOrder = 3
+      Value = 0
+    end
+  end
+  object gbHot: TGroupBox
+    Left = 10
+    Top = 286
+    Width = 410
+    Height = 84
+    Caption = 'Hotkeys'
+    TabOrder = 4
+    object lblVKL: TLabel
+      Left = 15
+      Top = 20
+      Width = 170
+      Height = 20
+      Caption = 'Left: F6'
+    end
+    object lblVKR: TLabel
+      Left = 15
+      Top = 44
+      Width = 170
+      Height = 20
+      Caption = 'Right: F7'
+    end
+    object lblVKW: TLabel
+      Left = 15
+      Top = 68
+      Width = 170
+      Height = 20
+      Caption = 'Middle: F8'
+    end
+    object btnHotSet: TButton
+      Left = 215
+      Top = 20
+      Width = 180
+      Height = 56
+      Caption = 'Hotkey setting...'
+      TabOrder = 0
+      OnClick = OnHotSetClick
+    end
+  end
+  object btnStart: TButton
+    Left = 10
+    Top = 376
+    Width = 200
+    Height = 42
+    Caption = 'Start'
+    Font.Height = -15
+    Font.Style = [fsBold]
+    TabOrder = 5
+    OnClick = OnStartClick
+  end
+  object btnStop: TButton
+    Left = 220
+    Top = 376
+    Width = 200
+    Height = 42
+    Caption = 'Stop'
+    Font.Height = -15
+    Font.Style = [fsBold]
+    Enabled = False
+    TabOrder = 6
+    OnClick = OnStopClick
+  end
+  object btnRec: TButton
+    Left = 10
+    Top = 424
+    Width = 410
+    Height = 28
+    Caption = 'Record & Playback...'
+    TabOrder = 7
+    OnClick = OnRecClick
+  end
+end

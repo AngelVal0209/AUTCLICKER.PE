@@ -1,0 +1,63 @@
+object RecDlg: TRecDlg
+  Left = 440
+  Height = 150
+  Top = 240
+  Width = 300
+  BorderStyle = bsSingle
+  Caption = 'Record & Playback'
+  Position = poMainFormCenter
+  OnShow = FormShow
+  OnDestroy = FormDestroy
+  object btnRecord: TButton
+    Left = 15
+    Top = 15
+    Width = 120
+    Height = 32
+    Caption = 'Record'
+    TabOrder = 0
+    OnClick = btnRecordClick
+  end
+  object btnStopRec: TButton
+    Left = 155
+    Top = 15
+    Width = 120
+    Height = 32
+    Caption = 'Stop'
+    Enabled = False
+    TabOrder = 1
+    OnClick = btnStopRecClick
+  end
+  object btnPlay: TButton
+    Left = 15
+    Top = 55
+    Width = 120
+    Height = 32
+    Caption = 'Playback'
+    Enabled = False
+    TabOrder = 2
+    OnClick = btnPlayClick
+  end
+  object btnStopPlay: TButton
+    Left = 155
+    Top = 55
+    Width = 120
+    Height = 32
+    Caption = 'Stop'
+    Enabled = False
+    TabOrder = 3
+    OnClick = btnStopPlayClick
+  end
+  object lblStatus: TLabel
+    Left = 15
+    Top = 100
+    Width = 270
+    Height = 20
+    Caption = 'Listo'
+  end
+  object tmr: TTimer
+    Interval = 250
+    OnTimer = OnTimer
+    Left = 20
+    Top = 120
+  end
+end
