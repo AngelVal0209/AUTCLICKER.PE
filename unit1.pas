@@ -38,11 +38,6 @@ type
     chkRand: TCheckBox;
     sedRand: TSpinEdit;
     lblRandMs: TLabel;
-    gbOptions: TGroupBox;
-    lblBtn: TLabel;
-    cbBtn: TComboBox;
-    lblTipo: TLabel;
-    cbTipo: TComboBox;
     gbRepeat: TGroupBox;
     rbVeces: TRadioButton;
     sedVeces: TSpinEdit;
@@ -168,12 +163,6 @@ begin
           SetCursorPos(MainForm.sedX.Value, MainForm.sedY.Value);
         Mouse_Event(d, 0, 0, 0, 0);
         Mouse_Event(u, 0, 0, 0, 0);
-        if MainForm.cbTipo.ItemIndex = 1 then
-        begin
-          Sleep(50);
-          Mouse_Event(d, 0, 0, 0, 0);
-          Mouse_Event(u, 0, 0, 0, 0);
-        end;
         Inc(FCount);
         next[i] := GetTickCount64 + MainForm.RandomInterval;
       end;
@@ -292,8 +281,6 @@ begin
 end;
 
 procedure TMainForm.OnStartClick(Sender: TObject);
-var
-  idx: Integer;
 begin
   if worker <> nil then Exit;
   if IntervalMs < 1 then
@@ -307,15 +294,7 @@ begin
     MessageDlg('Coordenadas fuera de la pantalla', mtWarning, [mbOK], 0);
     Exit;
   end;
-  idx := cbBtn.ItemIndex;
-  FOn[idx] := True;
-  if worker = nil then
-  begin
-    worker := TClicThread.Create(False);
-    worker.FreeOnTerminate := True;
-    worker.OnTerminate := @ThreadDone;
-  end;
-  UpdateUI;
+  SetAll(True);
 end;
 
 procedure TMainForm.OnStopClick(Sender: TObject);
@@ -379,8 +358,6 @@ begin
     ini.WriteInteger('Interval', 'Ms', sedMs.Value);
     ini.WriteBool('Interval', 'Rand', chkRand.Checked);
     ini.WriteInteger('Interval', 'RandMs', sedRand.Value);
-    ini.WriteInteger('Options', 'Btn', cbBtn.ItemIndex);
-    ini.WriteInteger('Options', 'Tipo', cbTipo.ItemIndex);
     ini.WriteBool('Repeat', 'Veces', rbVeces.Checked);
     ini.WriteInteger('Repeat', 'Count', sedVeces.Value);
     ini.WriteInteger('Cursor', 'Mode', Ord(rbPick.Checked));
@@ -408,8 +385,6 @@ begin
     sedMs.Value := ini.ReadInteger('Interval', 'Ms', 100);
     chkRand.Checked := ini.ReadBool('Interval', 'Rand', False);
     sedRand.Value := ini.ReadInteger('Interval', 'RandMs', 40);
-    cbBtn.ItemIndex := ini.ReadInteger('Options', 'Btn', 0);
-    cbTipo.ItemIndex := ini.ReadInteger('Options', 'Tipo', 0);
     rbVeces.Checked := ini.ReadBool('Repeat', 'Veces', False);
     sedVeces.Value := ini.ReadInteger('Repeat', 'Count', 1);
     rbPick.Checked := ini.ReadInteger('Cursor', 'Mode', 0) <> 0;
