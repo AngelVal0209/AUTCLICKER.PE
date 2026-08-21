@@ -8,6 +8,8 @@ Autoclicker nativo para Windows que pulsa los botones izquierdo, derecho y centr
 ![API](https://img.shields.io/badge/api-Win32_|_MMSystem-5C2D91)
 ![Config](https://img.shields.io/badge/config-INI_portable-E6A700)
 
+[Repositorio](https://github.com/AngelVal0209/autoclicker) · [Descargar `autoclicker.exe`](https://github.com/AngelVal0209/autoclicker/raw/main/autoclicker.exe)
+
 ---
 
 ## Características
@@ -81,31 +83,46 @@ No hay dependencias externas: solo LCL, la API Win32 y `MMSystem`.
 
 ## Instalación
 
+No requiere instalación ni dependencias: es un ejecutable nativo y portable. Solo necesitas Windows 7 o superior.
+
+### Opción A — Descargar el ejecutable (recomendada)
+
+1. Descarga [`autoclicker.exe`](https://github.com/AngelVal0209/autoclicker/raw/main/autoclicker.exe) desde el repositorio.
+2. Guárdalo en cualquier carpeta y ejecútalo con doble clic.
+
+No necesita Lazarus, runtimes ni librerías externas: todo va compilado dentro del `.exe`.
+
+### Opción B — Clonar el repositorio
+
 ```bash
-# 1. Clonar repositorio
-git clone <url-del-repo>
+# 1. Clonar
+git clone https://github.com/AngelVal0209/autoclicker.git
 cd autoclicker
 
-# 2a. Compilar desde consola con lazbuild
-lazbuild autoclicker.lpi
-
-# 2b. ...o abrir el proyecto en el IDE de Lazarus y pulsar F9
-#     (Run > Run) tras abrir autoclicker.lpi
+# 2. Ejecutar el binario ya compilado incluido en el repo
+./autoclicker.exe
 ```
 
-El ejecutable `autoclicker.exe` queda en la raíz del proyecto. Es portable: cópialo donde quieras junto con su `.ini`.
+La configuración se guarda automáticamente en `autoclicker.ini` junto al ejecutable: puedes copiar ambos archivos a otra máquina y conservar tus ajustes.
 
 ---
 
 ## Desarrollo
 
+Para compilar desde código fuente necesitas [Lazarus](https://www.lazarus-ide.org/) con FPC 3.2.x.
+
 ```bash
-# Compilar el proyecto (release por defecto del .lpi)
+# 1. Clonar
+git clone https://github.com/AngelVal0209/autoclicker.git
+cd autoclicker
+
+# 2a. Compilar desde consola con lazbuild
 lazbuild autoclicker.lpi
 
-# Ejecutar
-./autoclicker.exe
+# 2b. ...o abrir autoclicker.lpi en el IDE de Lazarus y pulsar F9 (Run > Run)
+```
 
+```bash
 # Limpiar artefactos de compilación generados
 rm -f *.o *.ppu *.obj *.compiled *.res
 ```
