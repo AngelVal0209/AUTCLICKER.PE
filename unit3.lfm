@@ -5,6 +5,7 @@ object RecDlg: TRecDlg
   Width = 300
   BorderStyle = bsSingle
   Caption = 'Record & Playback'
+  PixelsPerInch = 96
   Position = poMainFormCenter
   OnShow = FormShow
   OnDestroy = FormDestroy

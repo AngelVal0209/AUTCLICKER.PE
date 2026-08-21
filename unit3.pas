@@ -144,8 +144,8 @@ begin
   while not Terminated and (i < Length(FEvents)) do
   begin
     target := FEvents[i].t - base;
-    if target > GetTickCount64 - startT then
-      Sleep(target - (GetTickCount64 - startT));
+    while (not Terminated) and (target > GetTickCount64 - startT) do
+      Sleep(1);
     if FEvents[i].btn = 0 then
       SetCursorPos(FEvents[i].x, FEvents[i].y)
     else

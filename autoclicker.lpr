@@ -1,3 +1,5 @@
+{$APPTYPE GUI}
+{$R iconres.o}
 program autoclicker;
 
 {$mode objfpc}{$H+}

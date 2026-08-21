@@ -6,6 +6,7 @@ object HotDlg: THotDlg
   BorderStyle = bsSingle
   Caption = 'Hotkey setting'
   KeyPreview = True
+  PixelsPerInch = 96
   Position = poMainFormCenter
   OnKeyDown = OnDlgKeyDown
   OnShow = FormShow

@@ -14,6 +14,7 @@ const
   HOTID_R = 2;
   HOTID_W = 3;
   MOD_NOREPEAT = $4000;
+  HOTKEY_INI: array[0..2] of string = ('L', 'R', 'W');
 
 function KeyName(vk: Word): string;
 
@@ -71,9 +72,13 @@ type
   private
     FOn: array[0..2] of Boolean;
     worker: TClicThread;
+    FIntMs, FRandMs, FLimite: Int64;
+    FRandOn, FPick: Boolean;
+    FPickX, FPickY: Integer;
     function IntervalMs: Int64;
-    function RandomInterval: Int64;
     function ClickCount: Int64;
+    procedure Snapshot;
+    function WorkerAlive: Boolean;
     procedure Toggle(id: Integer);
     procedure SetAll(OnOff: Boolean);
     procedure StopWorker;
@@ -116,37 +121,24 @@ begin
           + Int64(sedS.Value) * 1000 + Int64(sedMs.Value);
 end;
 
-function TMainForm.RandomInterval: Int64;
-var
-  base, off: Int64;
-begin
-  base := IntervalMs;
-  if chkRand.Checked then
-  begin
-    off := sedRand.Value;
-    Result := base + Random(2 * off + 1) - off;
-    if Result < 1 then Result := 1;
-  end
-  else
-    Result := base;
-end;
-
-function TMainForm.ClickCount: Int64;
-begin
-  if rbVeces.Checked then Result := sedVeces.Value
-  else Result := -1;
-end;
-
 procedure TClicThread.Execute;
 var
   next: array[0..2] of Int64;
   i: Integer;
   d, u: Cardinal;
-  limite: Int64;
+  limite, iv, ri, rms: Int64;
+  ron, pick: Boolean;
+  px, py: Integer;
 begin
+  limite := MainForm.FLimite;
+  iv := MainForm.FIntMs;
+  ron := MainForm.FRandOn;
+  rms := MainForm.FRandMs;
+  pick := MainForm.FPick;
+  px := MainForm.FPickX;
+  py := MainForm.FPickY;
   for i := 0 to 2 do next[i] := 0;
   FCount := 0;
-  limite := MainForm.ClickCount;
   while not Terminated do
   begin
     if (limite >= 0) and (FCount >= limite) then Break;
@@ -159,15 +151,43 @@ begin
         else
           begin d := $20; u := $40; end;
         end;
-        if MainForm.rbPick.Checked then
-          SetCursorPos(MainForm.sedX.Value, MainForm.sedY.Value);
+        if pick then
+          SetCursorPos(px, py);
         Mouse_Event(d, 0, 0, 0, 0);
         Mouse_Event(u, 0, 0, 0, 0);
         Inc(FCount);
-        next[i] := GetTickCount64 + MainForm.RandomInterval;
+        ri := iv;
+        if ron then
+        begin
+          ri := iv + Random(2 * rms + 1) - rms;
+          if ri < 1 then ri := 1;
+        end;
+        next[i] := GetTickCount64 + ri;
       end;
     Sleep(1);
   end;
+end;
+
+function TMainForm.ClickCount: Int64;
+begin
+  if rbVeces.Checked then Result := sedVeces.Value
+  else Result := -1;
+end;
+
+procedure TMainForm.Snapshot;
+begin
+  FIntMs := IntervalMs;
+  FRandOn := chkRand.Checked;
+  FRandMs := sedRand.Value;
+  FLimite := ClickCount;
+  FPick := rbPick.Checked;
+  FPickX := sedX.Value;
+  FPickY := sedY.Value;
+end;
+
+function TMainForm.WorkerAlive: Boolean;
+begin
+  Result := (worker <> nil) and not worker.Finished;
 end;
 
 procedure TMainForm.FormCreate(Sender: TObject);
@@ -199,9 +219,11 @@ end;
 
 procedure TMainForm.Toggle(id: Integer);
 begin
+  if IntervalMs < 1 then Exit;
   FOn[id] := not FOn[id];
-  if (worker = nil) and (FOn[0] or FOn[1] or FOn[2]) then
+  if not WorkerAlive and (FOn[0] or FOn[1] or FOn[2]) then
   begin
+    Snapshot;
     worker := TClicThread.Create(False);
     worker.FreeOnTerminate := True;
     worker.OnTerminate := @ThreadDone;
@@ -216,8 +238,9 @@ begin
   FOn[0] := OnOff;
   FOn[1] := OnOff;
   FOn[2] := OnOff;
-  if OnOff and (worker = nil) then
+  if OnOff and not WorkerAlive then
   begin
+    Snapshot;
     worker := TClicThread.Create(False);
     worker.FreeOnTerminate := True;
     worker.OnTerminate := @ThreadDone;
@@ -243,18 +266,21 @@ begin
 end;
 
 procedure TMainForm.UpdateUI;
+var
+  run: Boolean;
 begin
-  btnStart.Enabled := (worker = nil);
-  btnStop.Enabled := (worker <> nil);
-  if (worker <> nil) and FOn[0] then
+  run := WorkerAlive;
+  btnStart.Enabled := not run;
+  btnStop.Enabled := run;
+  if run and FOn[0] then
     lblVKL.Caption := 'Left: ' + KeyName(hotVK[0]) + ' (activo)'
   else
     lblVKL.Caption := 'Left: ' + KeyName(hotVK[0]);
-  if (worker <> nil) and FOn[1] then
+  if run and FOn[1] then
     lblVKR.Caption := 'Right: ' + KeyName(hotVK[1]) + ' (activo)'
   else
     lblVKR.Caption := 'Right: ' + KeyName(hotVK[1]);
-  if (worker <> nil) and FOn[2] then
+  if run and FOn[2] then
     lblVKW.Caption := 'Middle: ' + KeyName(hotVK[2]) + ' (activo)'
   else
     lblVKW.Caption := 'Middle: ' + KeyName(hotVK[2]);
@@ -282,7 +308,7 @@ end;
 
 procedure TMainForm.OnStartClick(Sender: TObject);
 begin
-  if worker <> nil then Exit;
+  if WorkerAlive then Exit;
   if IntervalMs < 1 then
   begin
     MessageDlg('El intervalo debe ser mayor a 0 ms', mtWarning, [mbOK], 0);
@@ -295,12 +321,10 @@ begin
     Exit;
   end;
   FOn[0] := True;
-  if worker = nil then
-  begin
-    worker := TClicThread.Create(False);
-    worker.FreeOnTerminate := True;
-    worker.OnTerminate := @ThreadDone;
-  end;
+  Snapshot;
+  worker := TClicThread.Create(False);
+  worker.FreeOnTerminate := True;
+  worker.OnTerminate := @ThreadDone;
   UpdateUI;
 end;
 
@@ -370,9 +394,9 @@ begin
     ini.WriteInteger('Cursor', 'Mode', Ord(rbPick.Checked));
     ini.WriteInteger('Cursor', 'X', sedX.Value);
     ini.WriteInteger('Cursor', 'Y', sedY.Value);
-    ini.WriteInteger('Hotkeys', 'L', hotVK[0]);
-    ini.WriteInteger('Hotkeys', 'R', hotVK[1]);
-    ini.WriteInteger('Hotkeys', 'W', hotVK[2]);
+    ini.WriteInteger('Hotkeys', HOTKEY_INI[0], hotVK[0]);
+    ini.WriteInteger('Hotkeys', HOTKEY_INI[1], hotVK[1]);
+    ini.WriteInteger('Hotkeys', HOTKEY_INI[2], hotVK[2]);
   finally
     ini.Free;
   end;
@@ -399,7 +423,7 @@ begin
     sedY.Value := ini.ReadInteger('Cursor', 'Y', 0);
     for i := 0 to 2 do
     begin
-      k := Word(ini.ReadInteger('Hotkeys', Chr(Ord('L') + i), hotVK[i]));
+      k := Word(ini.ReadInteger('Hotkeys', HOTKEY_INI[i], hotVK[i]));
       if k <> 0 then hotVK[i] := k;
     end;
   finally
