@@ -208,8 +208,18 @@ begin
 end;
 
 procedure TMainForm.FormDestroy(Sender: TObject);
+var
+  i: Integer;
 begin
-  StopWorker;
+  if worker <> nil then
+  begin
+    worker.Terminate;
+    // ponytail: espera acotada; si Mouse_Event esta trabado por la app en
+    // primer plano no nos colgamos, el proceso se lleva el hilo al salir
+    for i := 1 to 30 do
+      if worker.Finished or (WaitForSingleObject(worker.Handle, 100) <> WAIT_TIMEOUT) then Break;
+    worker := nil;
+  end;
   UnregisterHotKey(Handle, HOTID_L);
   UnregisterHotKey(Handle, HOTID_R);
   UnregisterHotKey(Handle, HOTID_W);
@@ -254,9 +264,11 @@ procedure TMainForm.StopWorker;
 begin
   if worker = nil then Exit;
   worker.Terminate;
-  worker.WaitFor;
-  worker := nil;
-  UpdateUI;
+  // ponytail: muere en <=2ms normalmente; si esta trabado dentro de
+  // Mouse_Event (inyeccion bloqueada por la app en primer plano) NO esperamos
+  // mas: ThreadDone limpia cuando por fin termine. Nunca colgar la UI.
+  if WaitForSingleObject(worker.Handle, 50) = WAIT_OBJECT_0 then
+    worker := nil;
 end;
 
 procedure TMainForm.ThreadDone(Sender: TObject);
