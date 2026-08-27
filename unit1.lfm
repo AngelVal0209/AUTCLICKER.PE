@@ -1,12 +1,12 @@
 object MainForm: TMainForm
   Left = 440
-  Height = 640
+  Height = 660
   Top = 100
-  Width = 430
+  Width = 440
   BorderStyle = bsSingle
   Caption = 'AUTOCLICKER 1.0 BY DIABLO'
-  ClientHeight = 606
-  ClientWidth = 430
+  ClientHeight = 626
+  ClientWidth = 440
   Font.Height = -12
   Font.Name = 'Segoe UI'
   FormStyle = fsStayOnTop
@@ -16,78 +16,78 @@ object MainForm: TMainForm
   OnDestroy = FormDestroy
   object gbInterval: TGroupBox
     Left = 10
-    Height = 118
-    Top = 8
-    Width = 410
+    Height = 120
+    Top = 12
+    Width = 420
     Caption = 'Click interval'
     TabOrder = 0
     object sedH: TSpinEdit
       Left = 12
-      Top = 18
-      Width = 60
+      Top = 20
+      Width = 64
       Height = 26
       MaxValue = 99
       TabOrder = 0
       Value = 0
     end
     object lblH: TLabel
-      Left = 76
-      Top = 23
+      Left = 80
+      Top = 25
       Width = 12
       Height = 20
       Caption = 'h'
     end
     object sedMin: TSpinEdit
       Left = 104
-      Top = 18
-      Width = 60
+      Top = 20
+      Width = 64
       Height = 26
       MaxValue = 99
       TabOrder = 1
       Value = 0
     end
     object lblMin: TLabel
-      Left = 168
-      Top = 23
+      Left = 172
+      Top = 25
       Width = 24
       Height = 20
       Caption = 'min'
     end
     object sedS: TSpinEdit
-      Left = 196
-      Top = 18
-      Width = 60
+      Left = 200
+      Top = 20
+      Width = 64
       Height = 26
       MaxValue = 99
       TabOrder = 2
       Value = 0
     end
     object lblS: TLabel
-      Left = 260
-      Top = 23
+      Left = 268
+      Top = 25
       Width = 24
       Height = 20
       Caption = 'seg'
     end
     object sedMs: TSpinEdit
-      Left = 288
-      Top = 18
-      Width = 60
+      Left = 296
+      Top = 20
+      Width = 64
       Height = 26
       MaxValue = 999
       TabOrder = 3
       Value = 100
     end
     object lblMs: TLabel
-      Left = 352
-      Top = 23
+      Left = 364
+      Top = 25
       Width = 16
       Height = 20
       Caption = 'ms'
     end
     object chkRand: TCheckBox
       Left = 12
-      Top = 56
+      Top = 60
       Width = 170
       Height = 20
       Caption = 'Random offset +/-'
@@ -95,16 +95,16 @@ object MainForm: TMainForm
     end
     object sedRand: TSpinEdit
       Left = 190
-      Top = 54
-      Width = 60
+      Top = 58
+      Width = 64
       Height = 26
       MaxValue = 1000
       TabOrder = 5
       Value = 40
     end
     object lblRandMs: TLabel
-      Left = 254
-      Top = 59
+      Left = 258
+      Top = 63
       Width = 16
       Height = 20
       Caption = 'ms'
@@ -112,14 +112,14 @@ object MainForm: TMainForm
   end
   object gbRepeat: TGroupBox
     Left = 10
-    Height = 104
-    Top = 132
-    Width = 410
+    Height = 84
+    Top = 144
+    Width = 420
     Caption = 'Click repeat'
     TabOrder = 1
     object rbVeces: TRadioButton
       Left = 15
-      Top = 14
+      Top = 20
       Width = 70
       Height = 20
       Caption = 'Repeat'
@@ -127,7 +127,7 @@ object MainForm: TMainForm
     end
     object sedVeces: TSpinEdit
       Left = 90
-      Top = 12
+      Top = 18
       Width = 55
       Height = 26
       MinValue = 1
@@ -136,14 +136,14 @@ object MainForm: TMainForm
     end
     object lblVeces: TLabel
       Left = 150
-      Top = 17
+      Top = 23
       Width = 35
       Height = 20
       Caption = 'times'
     end
     object rbHasta: TRadioButton
       Left = 15
-      Top = 46
+      Top = 50
       Width = 180
       Height = 20
       Caption = 'Repeat until stopped'
@@ -153,14 +153,14 @@ object MainForm: TMainForm
   end
   object gbCursor: TGroupBox
     Left = 10
-    Height = 104
-    Top = 242
-    Width = 410
+    Height = 84
+    Top = 240
+    Width = 420
     Caption = 'Cursor position'
     TabOrder = 2
     object rbCur: TRadioButton
       Left = 15
-      Top = 12
+      Top = 20
       Width = 130
       Height = 20
       Caption = 'Current location'
@@ -170,7 +170,7 @@ object MainForm: TMainForm
     end
     object rbPick: TRadioButton
       Left = 155
-      Top = 12
+      Top = 20
       Width = 120
       Height = 20
       Caption = 'Pick location'
@@ -179,14 +179,14 @@ object MainForm: TMainForm
     end
     object lblX: TLabel
       Left = 15
-      Top = 51
+      Top = 53
       Width = 14
       Height = 20
       Caption = 'X:'
     end
     object sedX: TSpinEdit
       Left = 32
-      Top = 47
+      Top = 49
       Width = 90
       Height = 26
       Enabled = False
@@ -196,14 +196,14 @@ object MainForm: TMainForm
     end
     object lblY: TLabel
       Left = 132
-      Top = 51
+      Top = 53
       Width = 14
       Height = 20
       Caption = 'Y:'
     end
     object sedY: TSpinEdit
       Left = 149
-      Top = 47
+      Top = 49
       Width = 90
       Height = 26
       Enabled = False
@@ -214,37 +214,37 @@ object MainForm: TMainForm
   end
   object gbHot: TGroupBox
     Left = 10
-    Height = 90
-    Top = 352
-    Width = 410
+    Height = 116
+    Top = 336
+    Width = 420
     Caption = 'Hotkeys'
     TabOrder = 3
     object lblVKL: TLabel
       Left = 15
-      Top = 10
+      Top = 22
       Width = 170
       Height = 20
       Caption = 'Left: F6'
     end
     object lblVKR: TLabel
       Left = 15
-      Top = 38
+      Top = 48
       Width = 170
       Height = 20
       Caption = 'Right: F7'
     end
     object lblVKW: TLabel
       Left = 15
-      Top = 66
+      Top = 74
       Width = 170
       Height = 20
       Caption = 'Middle: F8'
     end
     object btnHotSet: TButton
-      Left = 215
-      Top = 10
-      Width = 180
-      Height = 64
+      Left = 220
+      Top = 22
+      Width = 185
+      Height = 72
       Caption = 'Hotkey setting...'
       TabOrder = 0
       OnClick = OnHotSetClick
@@ -252,18 +252,18 @@ object MainForm: TMainForm
   end
   object chkHold: TCheckBox
     Left = 10
-    Top = 450
-    Width = 410
-    Height = 22
-    Caption = 'Mantener clic pulsado = autoclic (suelta=para)'
+    Top = 464
+    Width = 420
+    Height = 24
+    Caption = 'Mantener clic = autoclic (suelta para parar)'
     TabOrder = 4
     OnClick = OnHoldClick
   end
   object btnStart: TButton
     Left = 10
-    Top = 482
-    Width = 200
-    Height = 40
+    Top = 500
+    Width = 205
+    Height = 42
     Caption = 'Start'
     Font.Height = -15
     Font.Style = [fsBold]
@@ -271,10 +271,10 @@ object MainForm: TMainForm
     OnClick = OnStartClick
   end
   object btnStop: TButton
-    Left = 220
-    Top = 482
-    Width = 200
-    Height = 40
+    Left = 225
+    Top = 500
+    Width = 205
+    Height = 42
     Caption = 'Stop'
     Font.Height = -15
     Font.Style = [fsBold]
@@ -284,9 +284,9 @@ object MainForm: TMainForm
   end
   object btnRec: TButton
     Left = 10
-    Top = 532
-    Width = 410
-    Height = 28
+    Top = 556
+    Width = 420
+    Height = 30
     Caption = 'Record & Playback...'
     TabOrder = 7
     OnClick = OnRecClick
