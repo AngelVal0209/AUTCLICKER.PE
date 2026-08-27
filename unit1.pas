@@ -13,8 +13,9 @@ const
   HOTID_L = 1;
   HOTID_R = 2;
   HOTID_W = 3;
+  HOTID_HOLD_OFF = 4;
   MOD_NOREPEAT = $4000;
-  HOTKEY_INI: array[0..2] of string = ('L', 'R', 'W');
+  HOTKEY_INI: array[0..3] of string = ('L', 'R', 'W', 'H');
 
 function KeyName(vk: Word): string;
 
@@ -56,6 +57,7 @@ type
     lblVKR: TLabel;
     lblVKW: TLabel;
     btnHotSet: TButton;
+    chkHold: TCheckBox;
     btnStart: TButton;
     btnStop: TButton;
     btnRec: TButton;
@@ -66,11 +68,14 @@ type
     procedure OnHotSetClick(Sender: TObject);
     procedure OnRecClick(Sender: TObject);
     procedure OnPosChange(Sender: TObject);
+    procedure OnHoldClick(Sender: TObject);
+    procedure OnLiveChange(Sender: TObject);
   public
-    hotVK: array[0..2] of Word;
+    hotVK: array[0..3] of Word;
     function SetHotKey(idx: Integer; vk: Word): Boolean;
   private
     FOn: array[0..2] of Boolean;
+    FHoldMode: Boolean;
     worker: TClicThread;
     FIntMs, FRandMs, FLimite: Int64;
     FRandOn, FPick: Boolean;
@@ -86,6 +91,11 @@ type
     procedure UpdateUI;
     procedure SaveConfig;
     procedure LoadConfig;
+    procedure SetHoldMode(AOn: Boolean);
+    procedure RegisterAllHotKeys;
+    procedure UnregisterAllHotKeys;
+    procedure RegisterClickHotKeys;
+    procedure UnregisterClickHotKeys;
   protected
     procedure WndProc(var Message: TMessage); override;
   end;
@@ -99,6 +109,43 @@ uses
   unit2, unit3;
 
 {$R *.lfm}
+
+const
+  WH_MOUSE_LL = 14;
+  LLMHF_INJECTED = $00000001;
+  HC_ACTION = 0;
+
+type
+  PMSLLHOOKSTRUCT = ^MSLLHOOKSTRUCT;
+  MSLLHOOKSTRUCT = packed record
+    pt: TPoint;
+    mouseData: DWORD;
+    flags: DWORD;
+    time: DWORD;
+    dwExtraInfo: ULONG_PTR;
+  end;
+
+var
+  hHook: THandle = 0;
+  physL, physR: Boolean;
+
+function LowLevelMouseProc(nCode: Integer; wParam: WPARAM; lParam: LPARAM): LRESULT; stdcall;
+var
+  p: PMSLLHOOKSTRUCT;
+begin
+  if (nCode = HC_ACTION) then
+  begin
+    p := PMSLLHOOKSTRUCT(Pointer(PtrUInt(lParam)));
+    if (p^.flags and LLMHF_INJECTED) = 0 then
+      case wParam of
+        WM_LBUTTONDOWN: physL := True;
+        WM_LBUTTONUP: physL := False;
+        WM_RBUTTONDOWN: physR := True;
+        WM_RBUTTONUP: physR := False;
+      end;
+  end;
+  Result := CallNextHookEx(hHook, nCode, wParam, lParam);
+end;
 
 function KeyName(vk: Word): string;
 begin
@@ -129,6 +176,7 @@ var
   limite, iv, ri, rms: Int64;
   ron, pick: Boolean;
   px, py: Integer;
+  hold: Boolean;
 begin
   limite := MainForm.FLimite;
   iv := MainForm.FIntMs;
@@ -141,6 +189,33 @@ begin
   FCount := 0;
   while not Terminated do
   begin
+    hold := MainForm.FHoldMode;
+    if hold then
+    begin
+      // ponytail: physL/physR via hook LL (flags & INJECTED=0) → continuo 24cps, suelta=para
+      if physL and (GetTickCount64 >= next[0]) then
+      begin
+        if MainForm.FPick then SetCursorPos(MainForm.FPickX, MainForm.FPickY);
+        Mouse_Event($02, 0, 0, 0, 0);
+        Mouse_Event($04, 0, 0, 0, 0);
+        Inc(FCount);
+        ri := MainForm.FIntMs; if ri < 1 then ri := 1;
+        if MainForm.FRandOn then begin ri := ri + Random(2 * MainForm.FRandMs + 1) - MainForm.FRandMs; if ri < 1 then ri := 1; end;
+        next[0] := GetTickCount64 + ri;
+      end;
+      if physR and (GetTickCount64 >= next[1]) then
+      begin
+        if MainForm.FPick then SetCursorPos(MainForm.FPickX, MainForm.FPickY);
+        Mouse_Event($08, 0, 0, 0, 0);
+        Mouse_Event($10, 0, 0, 0, 0);
+        Inc(FCount);
+        ri := MainForm.FIntMs; if ri < 1 then ri := 1;
+        if MainForm.FRandOn then begin ri := ri + Random(2 * MainForm.FRandMs + 1) - MainForm.FRandMs; if ri < 1 then ri := 1; end;
+        next[1] := GetTickCount64 + ri;
+      end;
+      Sleep(1);
+      Continue;
+    end;
     if (limite >= 0) and (FCount >= limite) then Break;
     for i := 0 to 2 do
       if MainForm.FOn[i] and (GetTickCount64 >= next[i]) then
@@ -190,21 +265,109 @@ begin
   Result := (worker <> nil) and not worker.Finished;
 end;
 
+procedure TMainForm.RegisterAllHotKeys;
+var i: Integer;
+begin
+  for i := 0 to 2 do
+    if not RegisterHotKey(Handle, i + 1, MOD_NOREPEAT, hotVK[i]) then
+      MessageDlg('No se pudo registrar la hotkey ' + KeyName(hotVK[i]) +
+        ', elige otra en Hotkey setting', mtWarning, [mbOK], 0);
+  // hold toggle siempre registrado (ej F) para prender/apagar como G
+  if not RegisterHotKey(Handle, HOTID_HOLD_OFF, MOD_NOREPEAT, hotVK[3]) then
+    MessageDlg('No se pudo registrar hotkey hold ' + KeyName(hotVK[3]), mtWarning, [mbOK], 0);
+end;
+
+procedure TMainForm.UnregisterAllHotKeys;
+begin
+  UnregisterHotKey(Handle, HOTID_L);
+  UnregisterHotKey(Handle, HOTID_R);
+  UnregisterHotKey(Handle, HOTID_W);
+  UnregisterHotKey(Handle, HOTID_HOLD_OFF);
+end;
+
+procedure TMainForm.RegisterClickHotKeys;
+var i: Integer;
+begin
+  for i := 0 to 2 do
+    if not RegisterHotKey(Handle, i + 1, MOD_NOREPEAT, hotVK[i]) then
+      MessageDlg('No se pudo registrar la hotkey ' + KeyName(hotVK[i]) +
+        ', elige otra en Hotkey setting', mtWarning, [mbOK], 0);
+end;
+
+procedure TMainForm.UnregisterClickHotKeys;
+begin
+  UnregisterHotKey(Handle, HOTID_L);
+  UnregisterHotKey(Handle, HOTID_R);
+  UnregisterHotKey(Handle, HOTID_W);
+end;
+
+procedure TMainForm.SetHoldMode(AOn: Boolean);
+begin
+  FHoldMode := AOn;
+  if AOn then
+  begin
+    UnregisterClickHotKeys;
+    FOn[0] := False; FOn[1] := False; FOn[2] := False;
+    btnHotSet.Enabled := False;
+    if IntervalMs < 1 then
+    begin
+      MessageDlg('El intervalo debe ser mayor a 0 ms', mtWarning, [mbOK], 0);
+      FHoldMode := False;
+      chkHold.Checked := False;
+      RegisterClickHotKeys;
+      btnHotSet.Enabled := True;
+      UpdateUI;
+      Exit;
+    end;
+    // hook físico para hold continuo (injected no cuenta)
+    if hHook <> 0 then UnhookWindowsHookEx(hHook);
+    physL := False; physR := False;
+    hHook := SetWindowsHookEx(WH_MOUSE_LL, @LowLevelMouseProc, HInstance, 0);
+    if hHook = 0 then
+      MessageDlg('No se pudo instalar hook de mouse hold', mtWarning, [mbOK], 0);
+    if not WorkerAlive then
+    begin
+      Snapshot;
+      worker := TClicThread.Create(False);
+      worker.FreeOnTerminate := True;
+      worker.OnTerminate := @ThreadDone;
+    end;
+  end
+  else
+  begin
+    StopWorker;
+    if hHook <> 0 then begin UnhookWindowsHookEx(hHook); hHook := 0; end;
+    physL := False; physR := False;
+    RegisterClickHotKeys;
+    btnHotSet.Enabled := True;
+  end;
+  UpdateUI;
+end;
+
 procedure TMainForm.FormCreate(Sender: TObject);
-var
-  i: Integer;
 begin
   Randomize;
   hotVK[0] := VK_F6;
   hotVK[1] := VK_F7;
   hotVK[2] := VK_F8;
+  hotVK[3] := VK_F1;
   LoadConfig;
   timeBeginPeriod(1);
-  for i := 0 to 2 do
-    if not RegisterHotKey(Handle, i + 1, MOD_NOREPEAT, hotVK[i]) then
-      MessageDlg('No se pudo registrar la hotkey ' + KeyName(hotVK[i]) +
-        ', elige otra en Hotkey setting', mtWarning, [mbOK], 0);
+  RegisterAllHotKeys;
+  FHoldMode := False;
+  // ponytail: live update para hold (suelta para parar, interval en caliente)
+  sedH.OnChange := @OnLiveChange;
+  sedMin.OnChange := @OnLiveChange;
+  sedS.OnChange := @OnLiveChange;
+  sedMs.OnChange := @OnLiveChange;
+  sedRand.OnChange := @OnLiveChange;
+  chkRand.OnChange := @OnLiveChange;
   UpdateUI;
+end;
+
+procedure TMainForm.OnLiveChange(Sender: TObject);
+begin
+  if FHoldMode then Snapshot;
 end;
 
 procedure TMainForm.FormDestroy(Sender: TObject);
@@ -214,21 +377,19 @@ begin
   if worker <> nil then
   begin
     worker.Terminate;
-    // ponytail: espera acotada; si Mouse_Event esta trabado por la app en
-    // primer plano no nos colgamos, el proceso se lleva el hilo al salir
     for i := 1 to 30 do
       if worker.Finished or (WaitForSingleObject(worker.Handle, 100) <> WAIT_TIMEOUT) then Break;
     worker := nil;
   end;
-  UnregisterHotKey(Handle, HOTID_L);
-  UnregisterHotKey(Handle, HOTID_R);
-  UnregisterHotKey(Handle, HOTID_W);
+  if hHook <> 0 then begin UnhookWindowsHookEx(hHook); hHook := 0; end;
+  UnregisterAllHotKeys;
   timeEndPeriod(1);
   SaveConfig;
 end;
 
 procedure TMainForm.Toggle(id: Integer);
 begin
+  if FHoldMode then Exit;
   if IntervalMs < 1 then Exit;
   FOn[id] := not FOn[id];
   if not WorkerAlive and (FOn[0] or FOn[1] or FOn[2]) then
@@ -245,6 +406,7 @@ end;
 
 procedure TMainForm.SetAll(OnOff: Boolean);
 begin
+  if FHoldMode then Exit;
   FOn[0] := OnOff;
   FOn[1] := OnOff;
   FOn[2] := OnOff;
@@ -282,6 +444,22 @@ var
   run: Boolean;
 begin
   run := WorkerAlive;
+  if FHoldMode then
+  begin
+    // cuadradito activado -> hotkeys off, hold poll activo, suelta para parar
+    btnStart.Enabled := False;
+    btnStop.Enabled := False;
+    btnHotSet.Enabled := False;
+    chkHold.Enabled := True;
+    chkHold.Caption := 'Mantener clic ACTIVO (suelta=para) - ' + KeyName(hotVK[3]);
+    lblVKL.Caption := 'Left: mantén pulsado';
+    lblVKR.Caption := 'Right: mantén pulsado';
+    lblVKW.Caption := 'Middle: ' + KeyName(hotVK[2]) + ' (desactivado)';
+    Exit;
+  end;
+  chkHold.Caption := 'Mantener clic = autoclic (suelta=para) - ' + KeyName(hotVK[3]);
+  chkHold.Enabled := True;
+  btnHotSet.Enabled := True;
   btnStart.Enabled := not run;
   btnStop.Enabled := run;
   if run and FOn[0] then
@@ -302,6 +480,22 @@ function TMainForm.SetHotKey(idx: Integer; vk: Word): Boolean;
 var
   id: Cardinal;
 begin
+  if idx = 3 then
+  begin
+    if FHoldMode then
+    begin
+      UnregisterHotKey(Handle, HOTID_HOLD_OFF);
+      if RegisterHotKey(Handle, HOTID_HOLD_OFF, MOD_NOREPEAT, vk) then
+      begin hotVK[3] := vk; Result := True; end
+      else begin RegisterHotKey(Handle, HOTID_HOLD_OFF, MOD_NOREPEAT, hotVK[3]); Result := False; end;
+    end else
+      hotVK[3] := vk;
+    UpdateUI;
+    SaveConfig;
+    if not FHoldMode then Result := True;
+    Exit;
+  end;
+  if FHoldMode then begin Result := False; Exit; end;
   id := idx + 1;
   UnregisterHotKey(Handle, id);
   if RegisterHotKey(Handle, id, MOD_NOREPEAT, vk) then
@@ -320,6 +514,11 @@ end;
 
 procedure TMainForm.OnStartClick(Sender: TObject);
 begin
+  if FHoldMode then
+  begin
+    MessageDlg('Desactiva "Enable mouse hold" para usar Start/hotkeys', mtInformation, [mbOK], 0);
+    Exit;
+  end;
   if WorkerAlive then Exit;
   if IntervalMs < 1 then
   begin
@@ -342,6 +541,11 @@ end;
 
 procedure TMainForm.OnStopClick(Sender: TObject);
 begin
+  if FHoldMode then
+  begin
+    chkHold.Checked := False;
+    Exit;
+  end;
   SetAll(False);
 end;
 
@@ -351,10 +555,21 @@ begin
   sedY.Enabled := rbPick.Checked;
 end;
 
+procedure TMainForm.OnHoldClick(Sender: TObject);
+begin
+  // sin confirmación: check = prende, uncheck = apaga, igual que hotkey G
+  SetHoldMode(chkHold.Checked);
+end;
+
 procedure TMainForm.OnHotSetClick(Sender: TObject);
 var
   dlg: THotDlg;
 begin
+  if FHoldMode then
+  begin
+    MessageDlg('Desactiva "Enable mouse hold" para editar hotkeys', mtInformation, [mbOK], 0);
+    Exit;
+  end;
   dlg := THotDlg.Create(nil);
   try
     dlg.ShowModal;
@@ -378,9 +593,25 @@ end;
 procedure TMainForm.WndProc(var Message: TMessage);
 var
   id: Integer;
+  wasHold: Boolean;
 begin
   if Message.Msg = WM_HOTKEY then
   begin
+    if Cardinal(Message.wParam) = HOTID_HOLD_OFF then
+    begin
+      // toggle hold como hotkey G: prende si apagado, apaga si prendido, sin confirmar
+      wasHold := FHoldMode;
+      // evita doble disparo via OnHoldClick
+      chkHold.OnClick := nil;
+      try
+        chkHold.Checked := not wasHold;
+      finally
+        chkHold.OnClick := @OnHoldClick;
+      end;
+      SetHoldMode(not wasHold);
+      Exit;
+    end;
+    if FHoldMode then Exit; // en hold, ignora click hotkeys
     id := Cardinal(Message.wParam) - 1;
     if (id >= 0) and (id <= 2) then Toggle(id)
     else inherited WndProc(Message);
@@ -409,6 +640,7 @@ begin
     ini.WriteInteger('Hotkeys', HOTKEY_INI[0], hotVK[0]);
     ini.WriteInteger('Hotkeys', HOTKEY_INI[1], hotVK[1]);
     ini.WriteInteger('Hotkeys', HOTKEY_INI[2], hotVK[2]);
+    ini.WriteInteger('Hotkeys', HOTKEY_INI[3], hotVK[3]);
   finally
     ini.Free;
   end;
@@ -433,7 +665,7 @@ begin
     rbPick.Checked := ini.ReadInteger('Cursor', 'Mode', 0) <> 0;
     sedX.Value := ini.ReadInteger('Cursor', 'X', 0);
     sedY.Value := ini.ReadInteger('Cursor', 'Y', 0);
-    for i := 0 to 2 do
+    for i := 0 to 3 do
     begin
       k := Word(ini.ReadInteger('Hotkeys', HOTKEY_INI[i], hotVK[i]));
       if k <> 0 then hotVK[i] := k;

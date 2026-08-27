@@ -12,6 +12,7 @@ type
     btnK0: TButton;
     btnK1: TButton;
     btnK2: TButton;
+    btnK3: TButton;
     btnCerrar: TButton;
     procedure btnKClick(Sender: TObject);
     procedure OnDlgKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
@@ -34,15 +35,16 @@ uses
 
 procedure THotDlg.UpdateCaptions;
 const
-  names: array[0..2] of string = ('Left', 'Right', 'Middle');
+  names: array[0..3] of string = ('Left', 'Right', 'Middle', 'Hold salida');
 var
-  btns: array[0..2] of TButton;
+  btns: array[0..3] of TButton;
   i: Integer;
 begin
   btns[0] := btnK0;
   btns[1] := btnK1;
   btns[2] := btnK2;
-  for i := 0 to 2 do
+  btns[3] := btnK3;
+  for i := 0 to 3 do
     if listening = i then
       btns[i].Caption := 'Pulsa una tecla...'
     else

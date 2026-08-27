@@ -1,6 +1,6 @@
 object HotDlg: THotDlg
   Left = 440
-  Height = 170
+  Height = 210
   Top = 240
   Width = 300
   BorderStyle = bsSingle
@@ -40,13 +40,23 @@ object HotDlg: THotDlg
     TabOrder = 2
     OnClick = btnKClick
   end
+  object btnK3: TButton
+    Left = 15
+    Top = 120
+    Width = 270
+    Height = 28
+    Caption = 'Hold salida: F1'
+    Tag = 3
+    TabOrder = 3
+    OnClick = btnKClick
+  end
   object btnCerrar: TButton
     Left = 195
-    Top = 128
+    Top = 160
     Width = 90
     Height = 28
     Caption = 'Cerrar'
-    TabOrder = 3
+    TabOrder = 4
     OnClick = OnCerrarClick
   end
 end

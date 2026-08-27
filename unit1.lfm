@@ -1,11 +1,11 @@
 object MainForm: TMainForm
   Left = 440
-  Height = 590
+  Height = 640
   Top = 100
   Width = 430
   BorderStyle = bsSingle
   Caption = 'AUTOCLICKER 1.0 BY DIABLO'
-  ClientHeight = 556
+  ClientHeight = 606
   ClientWidth = 430
   Font.Height = -12
   Font.Name = 'Segoe UI'
@@ -214,7 +214,7 @@ object MainForm: TMainForm
   end
   object gbHot: TGroupBox
     Left = 10
-    Height = 116
+    Height = 90
     Top = 352
     Width = 410
     Caption = 'Hotkeys'
@@ -250,36 +250,45 @@ object MainForm: TMainForm
       OnClick = OnHotSetClick
     end
   end
+  object chkHold: TCheckBox
+    Left = 10
+    Top = 450
+    Width = 410
+    Height = 22
+    Caption = 'Mantener clic pulsado = autoclic (suelta=para)'
+    TabOrder = 4
+    OnClick = OnHoldClick
+  end
   object btnStart: TButton
     Left = 10
-    Top = 472
+    Top = 482
     Width = 200
     Height = 40
     Caption = 'Start'
     Font.Height = -15
     Font.Style = [fsBold]
-    TabOrder = 4
+    TabOrder = 5
     OnClick = OnStartClick
   end
   object btnStop: TButton
     Left = 220
-    Top = 472
+    Top = 482
     Width = 200
     Height = 40
     Caption = 'Stop'
     Font.Height = -15
     Font.Style = [fsBold]
     Enabled = False
-    TabOrder = 5
+    TabOrder = 6
     OnClick = OnStopClick
   end
   object btnRec: TButton
     Left = 10
-    Top = 520
+    Top = 532
     Width = 410
     Height = 28
     Caption = 'Record & Playback...'
-    TabOrder = 6
+    TabOrder = 7
     OnClick = OnRecClick
   end
 end
