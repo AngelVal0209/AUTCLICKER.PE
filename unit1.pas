@@ -129,6 +129,15 @@ var
   hHook: THandle = 0;
   physL, physR: Boolean;
 
+procedure SendClick(flag: DWORD); inline;
+var inp: TInput;
+begin
+  FillChar(inp, SizeOf(inp), 0);
+  inp._Type := INPUT_MOUSE;
+  inp.mi.dwFlags := flag;
+  SendInput(1, @inp, SizeOf(inp));
+end;
+
 function LowLevelMouseProc(nCode: Integer; wParam: WPARAM; lParam: LPARAM): LRESULT; stdcall;
 var
   p: PMSLLHOOKSTRUCT;
@@ -180,6 +189,8 @@ var
 begin
   limite := MainForm.FLimite;
   iv := MainForm.FIntMs;
+  // ponytail: clamp 10ms evita saturar cola y girotes por 200cps (quitar si necesitas <10ms)
+  if iv < 10 then iv := 10;
   ron := MainForm.FRandOn;
   rms := MainForm.FRandMs;
   pick := MainForm.FPick;
@@ -192,25 +203,23 @@ begin
     hold := MainForm.FHoldMode;
     if hold then
     begin
-      // ponytail: physL/physR via hook LL (flags & INJECTED=0) → continuo 24cps, suelta=para
+      // physL/physR via hook LL (INJECTED=0) → suelta=para
       if physL and (GetTickCount64 >= next[0]) then
       begin
         if MainForm.FPick then SetCursorPos(MainForm.FPickX, MainForm.FPickY);
-        Mouse_Event($02, 0, 0, 0, 0);
-        Mouse_Event($04, 0, 0, 0, 0);
+        SendClick($02); SendClick($04);
         Inc(FCount);
-        ri := MainForm.FIntMs; if ri < 1 then ri := 1;
-        if MainForm.FRandOn then begin ri := ri + Random(2 * MainForm.FRandMs + 1) - MainForm.FRandMs; if ri < 1 then ri := 1; end;
+        ri := MainForm.FIntMs; if ri < 10 then ri := 10;
+        if MainForm.FRandOn then begin ri := ri + Random(2 * MainForm.FRandMs + 1) - MainForm.FRandMs; if ri < 10 then ri := 10; end;
         next[0] := GetTickCount64 + ri;
       end;
       if physR and (GetTickCount64 >= next[1]) then
       begin
         if MainForm.FPick then SetCursorPos(MainForm.FPickX, MainForm.FPickY);
-        Mouse_Event($08, 0, 0, 0, 0);
-        Mouse_Event($10, 0, 0, 0, 0);
+        SendClick($08); SendClick($10);
         Inc(FCount);
-        ri := MainForm.FIntMs; if ri < 1 then ri := 1;
-        if MainForm.FRandOn then begin ri := ri + Random(2 * MainForm.FRandMs + 1) - MainForm.FRandMs; if ri < 1 then ri := 1; end;
+        ri := MainForm.FIntMs; if ri < 10 then ri := 10;
+        if MainForm.FRandOn then begin ri := ri + Random(2 * MainForm.FRandMs + 1) - MainForm.FRandMs; if ri < 10 then ri := 10; end;
         next[1] := GetTickCount64 + ri;
       end;
       Sleep(1);
@@ -228,14 +237,13 @@ begin
         end;
         if pick then
           SetCursorPos(px, py);
-        Mouse_Event(d, 0, 0, 0, 0);
-        Mouse_Event(u, 0, 0, 0, 0);
+        SendClick(d); SendClick(u);
         Inc(FCount);
         ri := iv;
         if ron then
         begin
           ri := iv + Random(2 * rms + 1) - rms;
-          if ri < 1 then ri := 1;
+          if ri < 10 then ri := 10;
         end;
         next[i] := GetTickCount64 + ri;
       end;
@@ -362,6 +370,8 @@ begin
   sedMs.OnChange := @OnLiveChange;
   sedRand.OnChange := @OnLiveChange;
   chkRand.OnChange := @OnLiveChange;
+  sedX.OnChange := @OnLiveChange;
+  sedY.OnChange := @OnLiveChange;
   UpdateUI;
 end;
 
@@ -553,6 +563,7 @@ procedure TMainForm.OnPosChange(Sender: TObject);
 begin
   sedX.Enabled := rbPick.Checked;
   sedY.Enabled := rbPick.Checked;
+  if FHoldMode then Snapshot;
 end;
 
 procedure TMainForm.OnHoldClick(Sender: TObject);

@@ -137,6 +137,7 @@ procedure TPlayThread.Execute;
 var
   startT, base, target: Int64;
   i: Integer;
+  inp: TInput;
 begin
   startT := GetTickCount64;
   base := FEvents[0].t;
@@ -149,7 +150,12 @@ begin
     if FEvents[i].btn = 0 then
       SetCursorPos(FEvents[i].x, FEvents[i].y)
     else
-      Mouse_Event(FEvents[i].btn, 0, 0, 0, 0);
+    begin
+      FillChar(inp, SizeOf(inp), 0);
+      inp._Type := INPUT_MOUSE;
+      inp.mi.dwFlags := FEvents[i].btn;
+      SendInput(1, @inp, SizeOf(inp));
+    end;
     Inc(i);
   end;
 end;
