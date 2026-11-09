@@ -1,70 +1,56 @@
 # AutoClicker
 
-Autoclicker nativo para Windows que pulsa los botones izquierdo, derecho y central del ratón a intervalos configurables, con hotkeys globales, aleatoriedad anti-detección y grabadora de macros. Construido en Free Pascal con LCL (Lazarus), sin dependencias externas: un solo `.exe` portátil.
+Autoclicker nativo para Windows que pulsa los botones izquierdo, derecho y central del ratón a intervalos configurables, con **Modo Hold** (*mantener pulsado para disparar*), hotkeys globales, indicador de **CPS en tiempo real**, aleatoriedad anti-detección y grabadora de macros. Construido en Free Pascal con LCL (Lazarus), sin dependencias externas: un solo `.exe` portátil.
 
 ![Lenguaje](https://img.shields.io/badge/lenguaje-Free_Pascal_(ObjFPC)-2E7D32)
 ![IDE](https://img.shields.io/badge/framework-LCL_|_Lazarus-0F62A0)
 ![Plataforma](https://img.shields.io/badge/plataforma-Windows_7+-0078D6)
-![API](https://img.shields.io/badge/api-Win32_|_MMSystem-5C2D91)
+![API](https://img.shields.io/badge/api-Win32_|_RawInput_|_MMSystem-5C2D91)
 ![Config](https://img.shields.io/badge/config-INI_portable-E6A700)
 
-[Repositorio](https://github.com/AngelVal0209/autoclicker) · [Descargar `autoclicker.exe`](https://github.com/AngelVal0209/autoclicker/raw/main/autoclicker.exe)
+[Repositorio](https://github.com/AngelVal0209/AUTCLICKER.PE) · [Descargar `autoclicker.exe`](https://github.com/AngelVal0209/AUTCLICKER.PE/raw/main/autoclicker.exe)
 
 ---
 
 ## Características
 
-### Motor de clics (`TClicThread`)
-- Hilo worker independiente de la UI: la ventana nunca se congela mientras hace clic.
-- Programación por canal con `GetTickCount64`: cada botón mantiene su propia fecha límite `next[i]`, así tres botones activos clican cada uno a su ritmo dentro del mismo hilo.
-- Bucle de sondeo con `Sleep(1)` combinado con `timeBeginPeriod(1)` (MMSystem) para resolución real de 1 ms, no los ~15 ms por defecto de Windows.
-- Inyección de clics vía `Mouse_Event` con pares down/up exactos: izquierdo `$02/$04`, derecho `$08/$10`, central `$20/$40`.
-- Contador global `FCount: Int64` compartido por los tres canales; al alcanzar el límite configurado el hilo termina solo.
+### Motor de clics (`TClicThread`) e inyección atómica
+- Hilo worker independiente de la UI con espera precisa por evento (`WaitForSingleObject` + `timeBeginPeriod(1)`), sin *busy-waiting* ni congelamientos.
+- **Inyección atómica por lote (`SendClickPair` / `SendReleaseAndClickPair`)**: envía el par `DOWN` + `UP` en una única syscall `SendInput`, impidiendo que paquetes de movimiento de ratones de 1000–8000 Hz se intercalen entre la pulsación y la liberación (evitando pérdida de sensibilidad o girotes de cámara en juegos).
+- Programación independiente por canal con `GetTickCount64` (`next[0..2]`): izquierdo (`$02/$04`), derecho (`$08/$10`) y central (`$20/$40`).
+- Contador global `FCount: Int64`; al alcanzar el límite configurado notifica a la ventana principal (`WM_WORKER_DONE`) y detiene el ciclo limpiamente.
 
-### Intervalo con aleatoriedad
-- Intervalo configurable en horas, minutos, segundos y milisegundos (`sedH/sedMin/sedS/sedMs`), calculado como `h*3600000 + m*60000 + s*1000 + ms`; mínimo admitido: 1 ms.
-- Modo aleatorio opcional: desvío uniforme de `±RandMs` sobre el intervalo base (`iv + Random(2*rms+1) - rms`), acotado a mínimo 1 ms, para romper patrones mecánicos de clic.
-- La configuración se captura en un snapshot (`Snapshot`) al arrancar: cambiar valores con el clicador activo no altera la sesión en curso.
+### Modo Hold — Mantener pulsado para autoclic (`TRawMouseThread`)
+- Mantén presionado el botón físico del ratón para disparar ráfagas continuas y **suelta para parar al instante**.
+- **Detección física sin lag (`Raw Input` + `HWND_MESSAGE`)**: distingue tus pulsaciones físicas reales (`hDevice <> 0`) de los clics inyectados (`hDevice = 0`) usando una ventana ligera *message-only* con drenaje en lote (`PeekMessage`) a prioridad normal, descartando el 99.9 % de paquetes de movimiento sin robar CPU al juego.
+- **Respeto de clics simples**: al presionar el botón físico espera 1 intervalo antes de inyectar la ráfaga, permitiendo hacer clics normales en menús o inventario sin dobles clics accidentales.
+- **Clic derecho libre por defecto (`chkHoldR`)**: el modo Hold actúa por defecto solo en el clic izquierdo para que puedas apuntar con la mira (ADS), rotar cámara o cubrirte con clic derecho sin interferencias; incluye casilla opcional para habilitar también el clic derecho en modo Hold.
 
-### Modos de repetición
-- **N veces**: repite hasta el número exacto de clics definido en `sedVeces`.
-- **Hasta parar**: modo infinito (`limite = -1`) hasta pulsar Stop o la hotkey correspondiente.
-- El botón **Iniciar** arranca siempre con el canal izquierdo activo; **Detener** apaga los tres canales de golpe (`SetAll(False)`).
+### Intervalo con aleatoriedad y lectura de CPS en vivo
+- Intervalo configurable en horas, minutos, segundos y milisegundos (`sedH/sedMin/sedS/sedMs`); piso de seguridad de 10 ms en modo Hold y 1 ms en modo normal.
+- **Variación aleatoria (`±RandMs`)**: desvío uniforme acotado dinámicamente para romper patrones mecánicos.
+- **Calculadora de cadencia en tiempo real (`lblCps`)**: muestra al instante el intervalo efectivo en `ms` y los clics por segundo (`CPS`), o el rango `mín–máx` de `ms` y `CPS` cuando la variación aleatoria está activa.
+- **Edición en caliente (`Snapshot`)**: cualquier ajuste de intervalo, variación o coordenadas se aplica en vivo sin necesidad de detener el autoclicker.
 
-### Posición del cursor
-- **Cursor actual**: clica donde esté el puntero en cada momento.
-- **Coordenadas fijas**: mueve el puntero con `SetCursorPos(x, y)` antes de cada clic a las coordenadas `sedX/sedY`.
-- Validación al iniciar: rechaza coordenadas negativas o fuera de pantalla comparando contra `GetSystemMetrics(SM_CXSCREEN/SM_CYSCREEN)`.
+### Modos de repetición y posición multimonitor
+- **Repetir N veces** o **Repetir hasta detener (infinito)** tanto en modo normal como en modo Hold.
+- **Posición actual (libre)** o **Coordenadas fijas (`X/Y`)** compatibles con configuraciones multimonitor (`SM_XVIRTUALSCREEN..SM_CYVIRTUALSCREEN`).
 
-### Hotkeys globales
-- Tres hotkeys registradas a nivel de sistema con `RegisterHotKey` + `MOD_NOREPEAT` (no se auto-repiten al mantener pulsada), funcionan aunque la app esté minimizada o en segundo plano.
-- Por defecto: **F6** alterna clic izquierdo, **F7** el derecho, **F8** el central; cada canal se enciende y apaga de forma independiente.
-- Recepción por mensaje `WM_HOTKEY` (`$0312`) interceptado en `WndProc`, con ids internos 1–3 (`HOTID_L/HOTID_R/HOTID_W`).
-- Si otra aplicación ya usa la tecla, avisa al arrancar y permite reasignarla sin cerrar el programa.
-- Las etiquetas de la UI muestran el estado en vivo: `Left: F6 (activo)` cuando ese canal está disparando.
-
-### Diálogo de reasignación de hotkeys (`THotDlg`)
-- Pulsa el botón del canal (Left/Right/Middle) y luego cualquier tecla para capturarla vía `OnKeyDown`.
-- `Esc` cancela la captura sin cambios.
-- Reasignación atómica: desregistra la tecla vieja, intenta registrar la nueva y, si falla (tecla ocupada), restaura la anterior y muestra el aviso *"Esa tecla ya está asignada o no está disponible"*.
-- Traducción legible de códigos virtuales con `KeyName`: `Esc`, `Espacio`, `Enter`, `Tab`, `F1`–`F12`, letras `A`–`Z`, dígitos `0`–`9` y hexadecimal para el resto.
+### Hotkeys globales (4 canales)
+- Registradas a nivel de sistema con `RegisterHotKey` + `MOD_NOREPEAT`, funcionan con la app en segundo plano:
+  - **Clic Izquierdo** (por defecto `F6`)
+  - **Clic Derecho** (por defecto `F7`)
+  - **Clic Central** (por defecto `F8`)
+  - **Alternar Modo Hold** (por defecto `F1`)
+- Desde **Configurar Hotkeys...** (`THotDlg`) puedes reasignar cualquiera de las 4 teclas en caliente con validación contra teclas duplicadas u ocupadas.
 
 ### Grabadora y reproductor de macros (`TRecDlg`)
-- **Grabar** lanza `TRecThread`, que sondea cada 5 ms y registra dos tipos de eventos: movimientos (solo cuando cambian las coordenadas) y transiciones down/up de los tres botones leídas con `GetAsyncKeyState`.
-- Ignora los clics hechos sobre su propia ventana (`WindowFromPoint <> FSkipHwnd`), evitando auto-grabarse.
-- Cada evento guarda timestamp `t: Int64` (tick), posición `(x, y)` y código de botón (`0` = movimiento, `$02/$08/$20` = press, `$04/$10/$40` = release); el array dinámico crece por bloques de 256 para evitar realojos constantes.
-- **Reproducir** lanza `TPlayThread`, que reconstruye la secuencia respetando los tiempos originales relativos al primer evento: `SetCursorPos` para movimientos y `Mouse_Event` para clics.
-- Estado en vivo refrescado por temporizador: `Grabando...`, `Reproduciendo...`, `N eventos - X s` o `Listo`.
-- Detener grabación o reproducción corta el hilo con `Terminate` + `WaitFor` de forma síncrona.
+- **Grabar (`TRecThread`)**: captura movimientos y transiciones `DOWN/UP` de los tres botones cada 5 ms con contador de eventos en tiempo real.
+- Ignora automáticamente los clics sobre cualquier botón o control de la propia ventana de grabación (`GetAncestor(..., GA_ROOT)`).
+- **Reproducir (`TPlayThread`)**: ejecuta la secuencia respetando los tiempos originales y reactiva los controles automáticamente al finalizar.
 
-### Persistencia de configuración
-- Todo se guarda en `autoclicker.ini` junto al ejecutable (`ChangeFileExt(Application.ExeName, '.ini')`): configuración 100% portable, sin registro de Windows.
-- Se guarda automáticamente al cerrar la app y cada vez que reasignas una hotkey; se carga al abrir.
-- Secciones del INI: `[Interval]` (`H`, `Min`, `S`, `Ms`, `Rand`, `RandMs`), `[Repeat]` (`Veces`, `Count`), `[Cursor]` (`Mode`, `X`, `Y`) y `[Hotkeys]` (`L`, `R`, `W` con códigos de tecla virtual).
-
-### Ciclo de vida seguro
-- Al detener: espera acotada de 50 ms al worker; si está trabado dentro de `Mouse_Event`, la UI nunca se cuelga y el hilo se limpia solo al terminar (`ThreadDone`).
-- Al cerrar la app: espera máxima de 3 s (30 × 100 ms) al worker, libera las 3 hotkeys con `UnregisterHotKey` y restaura la resolución del temporizador con `timeEndPeriod(1)`.
+### Persistencia portable (`autoclicker.ini`)
+- Guarda y restaura intervalos, aleatoriedad, repetición, modo y coordenadas de cursor, opción de clic derecho en Hold y las 4 hotkeys en `autoclicker.ini` junto al ejecutable, sin tocar el registro de Windows.
 
 ---
 
@@ -72,75 +58,42 @@ Autoclicker nativo para Windows que pulsa los botones izquierdo, derecho y centr
 
 | Dependencia | Versión |
 |---|---|
-| Windows | 7 o superior (`MOD_NOREPEAT` requiere Win7+) |
-| Lazarus (con FPC incluido) | 2.x / 3.x |
+| Windows | 7 / 10 / 11 (`MOD_NOREPEAT` requiere Win7+) |
+| Lazarus (para compilar) | 2.x / 3.x / 4.x |
 | Free Pascal Compiler | 3.2.x |
-| LCL (viene con Lazarus) | — |
-
-No hay dependencias externas: solo LCL, la API Win32 y `MMSystem`.
 
 ---
 
 ## Instalación
 
-No requiere instalación ni dependencias: es un ejecutable nativo y portable. Solo necesitas Windows 7 o superior.
-
 ### Opción A — Descargar el ejecutable (recomendada)
 
-1. Descarga [`autoclicker.exe`](https://github.com/AngelVal0209/autoclicker/raw/main/autoclicker.exe) desde el repositorio.
+1. Descarga [`autoclicker.exe`](https://github.com/AngelVal0209/AUTCLICKER.PE/raw/main/autoclicker.exe) desde el repositorio.
 2. Guárdalo en cualquier carpeta y ejecútalo con doble clic.
 
-No necesita Lazarus, runtimes ni librerías externas: todo va compilado dentro del `.exe`.
+> **Nota para juegos que corren como Administrador**: si el juego se ejecuta con permisos elevados, ejecuta también `autoclicker.exe` como Administrador para que Windows (UIPI) permita enviar `SendInput` a la ventana del juego.
 
 ### Opción B — Clonar el repositorio
 
 ```bash
-# 1. Clonar
-git clone https://github.com/AngelVal0209/autoclicker.git
-cd autoclicker
-
-# 2. Ejecutar el binario ya compilado incluido en el repo
+git clone https://github.com/AngelVal0209/AUTCLICKER.PE.git
+cd AUTCLICKER.PE
 ./autoclicker.exe
 ```
-
-La configuración se guarda automáticamente en `autoclicker.ini` junto al ejecutable: puedes copiar ambos archivos a otra máquina y conservar tus ajustes.
 
 ---
 
 ## Desarrollo
 
-Para compilar desde código fuente necesitas [Lazarus](https://www.lazarus-ide.org/) con FPC 3.2.x.
+Para compilar desde código fuente necesitas [Lazarus](https://www.lazarus-ide.org/) con FPC 3.2.x:
 
 ```bash
-# 1. Clonar
-git clone https://github.com/AngelVal0209/autoclicker.git
-cd autoclicker
+# Compilar el proyecto desde consola
+lazbuild -B autoclicker.lpi
 
-# 2a. Compilar desde consola con lazbuild
-lazbuild autoclicker.lpi
-
-# 2b. ...o abrir autoclicker.lpi en el IDE de Lazarus y pulsar F9 (Run > Run)
+# Ejecutar
+./autoclicker.exe
 ```
-
-```bash
-# Limpiar artefactos de compilación generados
-rm -f *.o *.ppu *.obj *.compiled *.res
-```
-
-> Nota: si Windows Defender u otro antivirus marca el `.exe`, es un falso positivo típico de herramientas que sintetizan eventos de ratón (`Mouse_Event`).
-
----
-
-## Uso
-
-1. Define el intervalo (mínimo 1 ms) y, si quieres, activa la variación aleatoria en ms.
-2. Elige repetición: número fijo de clics o *hasta parar*.
-3. Elige posición: cursor actual o coordenadas fijas X/Y.
-4. Pulsa **Iniciar** (arranca el clic izquierdo) o usa las hotkeys:
-   - `F6` — alternar clic izquierdo
-   - `F7` — alternar clic derecho
-   - `F8` — alternar clic central
-5. **Detener** apaga todos los canales. Desde *Hotkey setting* puedes cambiar F6/F7/F8 por cualquier otra tecla; desde *Recorder* puedes grabar y reproducir secuencias completas de movimiento y clic.
 
 ---
 
@@ -150,20 +103,17 @@ rm -f *.o *.ppu *.obj *.compiled *.res
 autoclicker/
 ├── autoclicker.lpr      # Punto de entrada GUI: inicializa Application y crea TMainForm
 ├── autoclicker.lpi      # Proyecto de Lazarus (configuración de compilación)
-├── unit1.pas            # Ventana principal: intervalo, repetición, cursor,
-│                        #   hotkeys globales, hilo de clics (TClicThread) e INI
+├── unit1.pas            # Ventana principal: motor TClicThread, Raw Input (TRawMouseThread),
+│                        #   inyección atómica SendInput, hotkeys globales, CPS en vivo e INI
 ├── unit1.lfm            # Diseño del formulario principal
-├── unit2.pas            # THotDlg: diálogo de captura y reasignación de hotkeys
+├── unit2.pas            # THotDlg: captura y reasignación de las 4 hotkeys en caliente
 ├── unit2.lfm            # Diseño del diálogo de hotkeys
-├── unit3.pas            # TRecDlg + TRecThread/TPlayThread: grabadora y
-│                        #   reproductor de macros de ratón
+├── unit3.pas            # TRecDlg + TRecThread/TPlayThread: grabadora y reproductor de macros
 ├── unit3.lfm            # Diseño del diálogo de grabación
-├── icon.rc              # Recurso de icono para compilar en el ejecutable
+├── icon.rc              # Recurso de icono
 ├── autoclicker.ico      # Icono de la aplicación
-└── autoclicker.ini      # Configuración persistente (se genera junto al .exe)
+└── autoclicker.ini      # Configuración persistente (generado junto al .exe)
 ```
-
-Los archivos `.o`, `.ppu`, `.res` y `.compiled` son artefactos de compilación y están ignorados por git.
 
 ---
 
@@ -171,16 +121,15 @@ Los archivos `.o`, `.ppu`, `.res` y `.compiled` son artefactos de compilación y
 
 | Categoría | Tecnología |
 |---|---|
-| Lenguaje | Free Pascal (modo ObjFPC, `{$mode objfpc}{$H+}`) |
+| Lenguaje | Free Pascal (`{$mode objfpc}{$H+}`) |
 | Framework UI | LCL (Lazarus Component Library) |
-| API de entrada | Win32: `RegisterHotKey`, `Mouse_Event`, `SetCursorPos`, `GetAsyncKeyState`, `GetCursorPos`, `WindowFromPoint` |
-| Temporización | `GetTickCount64` + `timeBeginPeriod/timeEndPeriod` (MMSystem) |
-| Concurrencia | `TThread` (worker de clics, grabador, reproductor) |
+| API de entrada | Win32: `SendInput`, `RegisterRawInputDevices` (`WM_INPUT`), `RegisterHotKey`, `SetCursorPos`, `GetAsyncKeyState` |
+| Temporización | `GetTickCount64` + `WaitForSingleObject` + `timeBeginPeriod/timeEndPeriod` (`MMSystem`) |
+| Concurrencia | `TThread` (`TClicThread`, `TRawMouseThread`, `TRecThread`, `TPlayThread`) |
 | Configuración | `TIniFile` (INI portable junto al ejecutable) |
-| Destino | Ejecutable nativo Windows (GUI, `{$APPTYPE GUI}`) |
 
 ---
 
 ## Licencia
 
-Proyecto personal sin licencia formal. Úsalo bajo tu propia responsabilidad: algunas aplicaciones y juegos penalizan la automatización de clics.
+Proyecto personal. Úsalo bajo tu propia responsabilidad.
