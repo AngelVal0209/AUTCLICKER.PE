@@ -35,7 +35,12 @@ uses
 
 procedure THotDlg.UpdateCaptions;
 const
-  names: array[0..3] of string = ('Left', 'Right', 'Middle', 'Hold salida');
+  names: array[0..3] of string = (
+    'Clic Izquierdo',
+    'Clic Derecho',
+    'Clic Central',
+    'Alternar Modo Hold'
+  );
 var
   btns: array[0..3] of TButton;
   i: Integer;
@@ -46,7 +51,7 @@ begin
   btns[3] := btnK3;
   for i := 0 to 3 do
     if listening = i then
-      btns[i].Caption := 'Pulsa una tecla...'
+      btns[i].Caption := '>> Pulsa una tecla (Esc cancela) <<'
     else
       btns[i].Caption := names[i] + ': ' + KeyName(MainForm.hotVK[i]);
 end;
@@ -79,7 +84,7 @@ begin
       UpdateCaptions;
     end
     else
-      MessageDlg('Esa tecla ya está asignada o no está disponible', mtWarning, [mbOK], 0);
+      MessageDlg('Esa tecla ya está asignada a otro canal o reservada por otra aplicación.', mtWarning, [mbOK], 0);
   end;
   Key := 0;
 end;

@@ -1,13 +1,14 @@
 object MainForm: TMainForm
   Left = 440
-  Height = 760
+  Height = 748
   Top = 100
-  Width = 556
+  Width = 540
   BorderStyle = bsSingle
   Caption = 'AUTOCLICKER 1.0 BY DIABLO'
-  ClientHeight = 726
+  ClientHeight = 748
   ClientWidth = 540
-  Color = 15790320
+  Color = 15987699
+  Font.Color = 1973790
   Font.Height = -12
   Font.Name = 'Segoe UI'
   FormStyle = fsStayOnTop
@@ -15,352 +16,465 @@ object MainForm: TMainForm
   Position = poScreenCenter
   OnCreate = FormCreate
   OnDestroy = FormDestroy
+  object lblEstado: TLabel
+    Left = 16
+    Top = 12
+    Width = 508
+    Height = 20
+    AutoSize = False
+    Caption = 'ESTADO: EN ESPERA'
+    Font.Color = 4473924
+    Font.Height = -12
+    Font.Name = 'Segoe UI Semibold'
+    Font.Style = [fsBold]
+    ParentFont = False
+  end
   object gbInterval: TGroupBox
     Left = 16
-    Height = 132
-    Top = 16
+    Height = 148
+    Top = 36
     Width = 508
-    Caption = '  Click interval  '
+    Caption = '  Intervalo de clic (Click interval)  '
     Color = clWhite
-    Font.Height = -11
+    Font.Color = 1973790
+    Font.Height = -12
     Font.Name = 'Segoe UI Semibold'
     ParentColor = False
     ParentFont = False
     TabOrder = 0
     object sedH: TSpinEdit
       Left = 16
-      Top = 32
-      Width = 72
+      Top = 28
+      Width = 76
       Height = 28
+      Font.Color = 1973790
+      Font.Height = -12
+      Font.Name = 'Segoe UI'
       MaxValue = 99
+      ParentFont = False
       TabOrder = 0
       Value = 0
     end
     object lblH: TLabel
-      Left = 92
-      Top = 38
-      Width = 9
+      Left = 96
+      Top = 33
+      Width = 10
       Height = 15
       Caption = 'h'
-      Font.Height = -11
+      Font.Color = 4473924
+      Font.Height = -12
       Font.Name = 'Segoe UI'
       ParentFont = False
     end
     object sedMin: TSpinEdit
-      Left = 118
-      Top = 32
-      Width = 72
+      Left = 122
+      Top = 28
+      Width = 76
       Height = 28
+      Font.Color = 1973790
+      Font.Height = -12
+      Font.Name = 'Segoe UI'
       MaxValue = 99
+      ParentFont = False
       TabOrder = 1
       Value = 0
     end
     object lblMin: TLabel
-      Left = 194
-      Top = 38
-      Width = 24
+      Left = 202
+      Top = 33
+      Width = 22
       Height = 15
       Caption = 'min'
-      Font.Height = -11
+      Font.Color = 4473924
+      Font.Height = -12
+      Font.Name = 'Segoe UI'
       ParentFont = False
     end
     object sedS: TSpinEdit
-      Left = 232
-      Top = 32
-      Width = 72
+      Left = 240
+      Top = 28
+      Width = 76
       Height = 28
+      Font.Color = 1973790
+      Font.Height = -12
+      Font.Name = 'Segoe UI'
       MaxValue = 99
+      ParentFont = False
       TabOrder = 2
       Value = 0
     end
     object lblS: TLabel
-      Left = 308
-      Top = 38
-      Width = 22
+      Left = 320
+      Top = 33
+      Width = 20
       Height = 15
       Caption = 'seg'
-      Font.Height = -11
+      Font.Color = 4473924
+      Font.Height = -12
+      Font.Name = 'Segoe UI'
       ParentFont = False
     end
     object sedMs: TSpinEdit
-      Left = 344
-      Top = 32
-      Width = 80
+      Left = 356
+      Top = 28
+      Width = 88
       Height = 28
+      Font.Color = 1973790
+      Font.Height = -12
+      Font.Name = 'Segoe UI'
       MaxValue = 999
+      ParentFont = False
       TabOrder = 3
-      Value = 100
+      Value = 60
     end
     object lblMs: TLabel
-      Left = 428
-      Top = 38
-      Width = 18
+      Left = 448
+      Top = 33
+      Width = 16
       Height = 15
       Caption = 'ms'
-      Font.Height = -11
+      Font.Color = 4473924
+      Font.Height = -12
+      Font.Name = 'Segoe UI'
       ParentFont = False
     end
     object chkRand: TCheckBox
       Left = 16
-      Top = 80
-      Width = 150
+      Top = 70
+      Width = 156
       Height = 20
-      Caption = 'Random offset  +/-'
-      Font.Height = -11
+      Caption = 'Variación aleatoria +/-'
+      Font.Color = 1973790
+      Font.Height = -12
       Font.Name = 'Segoe UI'
       ParentFont = False
       TabOrder = 4
     end
     object sedRand: TSpinEdit
-      Left = 176
-      Top = 78
-      Width = 76
+      Left = 180
+      Top = 66
+      Width = 80
       Height = 28
+      Font.Color = 1973790
+      Font.Height = -12
+      Font.Name = 'Segoe UI'
       MaxValue = 1000
+      ParentFont = False
       TabOrder = 5
       Value = 40
     end
     object lblRandMs: TLabel
-      Left = 256
-      Top = 84
-      Width = 18
+      Left = 266
+      Top = 71
+      Width = 16
       Height = 15
       Caption = 'ms'
-      Font.Height = -11
+      Font.Color = 4473924
+      Font.Height = -12
+      Font.Name = 'Segoe UI'
+      ParentFont = False
+    end
+    object lblCps: TLabel
+      Left = 16
+      Top = 102
+      Width = 472
+      Height = 18
+      AutoSize = False
+      Caption = 'Cadencia efectiva: 60 ms  |  16.7 CPS'
+      Font.Color = 2631720
+      Font.Height = -12
+      Font.Name = 'Segoe UI Semibold'
       ParentFont = False
     end
   end
   object gbRepeat: TGroupBox
     Left = 16
-    Height = 110
-    Top = 160
+    Height = 102
+    Top = 196
     Width = 508
-    Caption = '  Click repeat  '
+    Caption = '  Repetición (Click repeat)  '
     Color = clWhite
-    Font.Height = -11
+    Font.Color = 1973790
+    Font.Height = -12
     Font.Name = 'Segoe UI Semibold'
     ParentColor = False
     ParentFont = False
     TabOrder = 1
     object rbVeces: TRadioButton
       Left = 16
-      Top = 28
-      Width = 74
-      Height = 19
-      Caption = 'Repeat'
-      Font.Height = -11
+      Top = 24
+      Width = 80
+      Height = 20
+      Caption = 'Repetir'
+      Font.Color = 1973790
+      Font.Height = -12
       Font.Name = 'Segoe UI'
       ParentFont = False
       TabOrder = 0
+      OnClick = OnLiveChange
     end
     object sedVeces: TSpinEdit
-      Left = 100
-      Top = 26
-      Width = 72
+      Left = 104
+      Top = 20
+      Width = 84
       Height = 28
+      Font.Color = 1973790
+      Font.Height = -12
+      Font.Name = 'Segoe UI'
+      MaxValue = 999999
       MinValue = 1
+      ParentFont = False
       TabOrder = 1
       Value = 1
     end
     object lblVeces: TLabel
-      Left = 178
-      Top = 32
-      Width = 35
+      Left = 196
+      Top = 25
+      Width = 34
       Height = 15
-      Caption = 'times'
-      Font.Height = -11
+      Caption = 'veces'
+      Font.Color = 4473924
+      Font.Height = -12
+      Font.Name = 'Segoe UI'
       ParentFont = False
     end
     object rbHasta: TRadioButton
       Left = 16
-      Top = 62
-      Width = 170
-      Height = 19
-      Caption = 'Repeat until stopped'
+      Top = 54
+      Width = 240
+      Height = 20
+      Caption = 'Repetir hasta detener (infinito)'
       Checked = True
-      Font.Height = -11
+      Font.Color = 1973790
+      Font.Height = -12
+      Font.Name = 'Segoe UI'
       ParentFont = False
       TabOrder = 2
+      OnClick = OnLiveChange
     end
   end
   object gbCursor: TGroupBox
     Left = 16
-    Height = 114
-    Top = 282
+    Height = 106
+    Top = 310
     Width = 508
-    Caption = '  Cursor position  '
+    Caption = '  Posición del cursor (Cursor position)  '
     Color = clWhite
-    Font.Height = -11
+    Font.Color = 1973790
+    Font.Height = -12
     Font.Name = 'Segoe UI Semibold'
     ParentColor = False
     ParentFont = False
     TabOrder = 2
     object rbCur: TRadioButton
       Left = 16
-      Top = 28
-      Width = 132
-      Height = 19
-      Caption = 'Current location'
+      Top = 22
+      Width = 170
+      Height = 20
+      Caption = 'Posición actual (libre)'
       Checked = True
-      Font.Height = -11
+      Font.Color = 1973790
+      Font.Height = -12
       Font.Name = 'Segoe UI'
       ParentFont = False
       TabOrder = 0
       OnClick = OnPosChange
     end
     object rbPick: TRadioButton
-      Left = 170
-      Top = 28
-      Width = 122
-      Height = 19
-      Caption = 'Pick location'
-      Font.Height = -11
+      Left = 204
+      Top = 22
+      Width = 170
+      Height = 20
+      Caption = 'Coordenadas fijas'
+      Font.Color = 1973790
+      Font.Height = -12
+      Font.Name = 'Segoe UI'
       ParentFont = False
       TabOrder = 1
       OnClick = OnPosChange
     end
     object lblX: TLabel
       Left = 16
-      Top = 66
-      Width = 13
+      Top = 58
+      Width = 12
       Height = 15
       Caption = 'X:'
-      Font.Height = -11
+      Font.Color = 4473924
+      Font.Height = -12
+      Font.Name = 'Segoe UI'
       ParentFont = False
     end
     object sedX: TSpinEdit
-      Left = 34
-      Top = 62
-      Width = 120
+      Left = 36
+      Top = 52
+      Width = 116
       Height = 28
       Enabled = False
-      MaxValue = 9999
+      Font.Color = 1973790
+      Font.Height = -12
+      Font.Name = 'Segoe UI'
+      MaxValue = 32767
+      MinValue = -32767
+      ParentFont = False
       TabOrder = 2
       Value = 0
     end
     object lblY: TLabel
-      Left = 172
-      Top = 66
-      Width = 13
+      Left = 176
+      Top = 58
+      Width = 12
       Height = 15
       Caption = 'Y:'
-      Font.Height = -11
+      Font.Color = 4473924
+      Font.Height = -12
+      Font.Name = 'Segoe UI'
       ParentFont = False
     end
     object sedY: TSpinEdit
-      Left = 190
-      Top = 62
-      Width = 120
+      Left = 196
+      Top = 52
+      Width = 116
       Height = 28
       Enabled = False
-      MaxValue = 9999
+      Font.Color = 1973790
+      Font.Height = -12
+      Font.Name = 'Segoe UI'
+      MaxValue = 32767
+      MinValue = -32767
+      ParentFont = False
       TabOrder = 3
       Value = 0
     end
   end
   object gbHot: TGroupBox
     Left = 16
-    Height = 124
-    Top = 408
+    Height = 172
+    Top = 428
     Width = 508
-    Caption = '  Hotkeys  '
+    Caption = '  Teclas rápidas y Modo Hold  '
     Color = clWhite
-    Font.Height = -11
+    Font.Color = 1973790
+    Font.Height = -12
     Font.Name = 'Segoe UI Semibold'
     ParentColor = False
     ParentFont = False
     TabOrder = 3
     object lblVKL: TLabel
       Left = 16
-      Top = 28
-      Width = 68
-      Height = 15
-      Caption = 'Left:   F1'
-      Font.Height = -11
+      Top = 22
+      Width = 230
+      Height = 18
+      AutoSize = False
+      Caption = 'Left: F6'
+      Font.Color = 1973790
+      Font.Height = -12
       Font.Name = 'Segoe UI'
       ParentFont = False
     end
     object lblVKR: TLabel
       Left = 16
-      Top = 52
-      Width = 68
-      Height = 15
-      Caption = 'Right:  F2'
-      Font.Height = -11
+      Top = 46
+      Width = 230
+      Height = 18
+      AutoSize = False
+      Caption = 'Right: F7'
+      Font.Color = 1973790
+      Font.Height = -12
+      Font.Name = 'Segoe UI'
       ParentFont = False
     end
     object lblVKW: TLabel
       Left = 16
-      Top = 76
-      Width = 72
-      Height = 15
+      Top = 70
+      Width = 230
+      Height = 18
+      AutoSize = False
       Caption = 'Middle: F8'
-      Font.Height = -11
+      Font.Color = 1973790
+      Font.Height = -12
+      Font.Name = 'Segoe UI'
       ParentFont = False
     end
     object btnHotSet: TButton
-      Left = 268
-      Top = 28
+      Left = 272
+      Top = 20
       Width = 220
-      Height = 72
-      Caption = 'Hotkey setting...'
-      Font.Height = -11
-      Font.Name = 'Segoe UI'
+      Height = 68
+      Caption = 'Configurar Hotkeys...'
+      Font.Color = 1973790
+      Font.Height = -12
+      Font.Name = 'Segoe UI Semibold'
       ParentFont = False
       TabOrder = 0
       OnClick = OnHotSetClick
     end
-  end
-  object chkHold: TCheckBox
-    Left = 16
-    Top = 544
-    Width = 508
-    Height = 22
-    Caption = 'Mantener clic = autoclic (suelta para parar) - F'
-    Font.Height = -11
-    Font.Name = 'Segoe UI'
-    ParentFont = False
-    TabOrder = 4
-    OnClick = OnHoldClick
+    object chkHold: TCheckBox
+      Left = 16
+      Top = 104
+      Width = 476
+      Height = 20
+      Caption = 'Mantener clic = autoclic (suelta para parar) - F1'
+      Font.Color = 1973790
+      Font.Height = -12
+      Font.Name = 'Segoe UI Semibold'
+      ParentFont = False
+      TabOrder = 1
+      OnClick = OnHoldClick
+    end
+    object chkHoldR: TCheckBox
+      Left = 16
+      Top = 128
+      Width = 476
+      Height = 20
+      Caption = 'Incluir clic derecho en modo Hold (desmarca para apuntar/cámara libre)'
+      Font.Color = 4473924
+      Font.Height = -11
+      Font.Name = 'Segoe UI'
+      ParentFont = False
+      TabOrder = 2
+      OnClick = OnLiveChange
+    end
   end
   object btnStart: TButton
     Left = 16
-    Top = 580
+    Top = 614
     Width = 246
-    Height = 52
-    Caption = 'Start'
-    Font.Color = clWhite
-    Font.Height = -14
+    Height = 48
+    Caption = 'Iniciar (Start)'
+    Font.Color = 1973790
+    Font.Height = -13
     Font.Name = 'Segoe UI'
     Font.Style = [fsBold]
     ParentFont = False
-    TabOrder = 5
+    TabOrder = 4
     OnClick = OnStartClick
   end
   object btnStop: TButton
     Left = 278
-    Top = 580
+    Top = 614
     Width = 246
-    Height = 52
-    Caption = 'Stop'
+    Height = 48
+    Caption = 'Detener (Stop)'
     Enabled = False
-    Font.Height = -14
+    Font.Color = 1973790
+    Font.Height = -13
     Font.Name = 'Segoe UI'
     Font.Style = [fsBold]
     ParentFont = False
-    TabOrder = 6
+    TabOrder = 5
     OnClick = OnStopClick
   end
   object btnRec: TButton
     Left = 16
-    Top = 648
+    Top = 674
     Width = 508
-    Height = 40
-    Caption = 'Record & Playback...'
-    Font.Height = -11
-    Font.Name = 'Segoe UI'
+    Height = 38
+    Caption = 'Grabadora de Macros (Record & Playback)...'
+    Font.Color = 1973790
+    Font.Height = -12
+    Font.Name = 'Segoe UI Semibold'
     ParentFont = False
-    TabOrder = 7
+    TabOrder = 6
     OnClick = OnRecClick
   end
 end
