@@ -992,7 +992,7 @@ begin
     sedY.Value := ini.ReadInteger('Cursor', 'Y', 0);
     sedX.Enabled := rbPick.Checked;
     sedY.Enabled := rbPick.Checked;
-    chkHoldR.Checked := ini.ReadBool('Hold', 'RightClick', False);
+    chkHoldR.Checked := ini.ReadBool('Hold', 'RightClick', True);
     for i := 0 to 3 do
     begin
       k := Word(ini.ReadInteger('Hotkeys', HOTKEY_INI[i], hotVK[i]));

@@ -427,6 +427,7 @@ object MainForm: TMainForm
       Width = 476
       Height = 20
       Caption = 'Incluir clic derecho en modo Hold (desmarca para apuntar/cámara libre)'
+      Checked = True
       Font.Color = 4473924
       Font.Height = -11
       Font.Name = 'Segoe UI'
